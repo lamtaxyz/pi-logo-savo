@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossier ProRépar: Analyse Stratégique PI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals & Muted Teal -->
+    <!-- Application Structure Plan: The SPA is designed as a strategic dashboard, not a linear report. It starts with a high-level summary, presents the core legal principles visually, details the strengths of the case through interactive cards, allows exploration of counter-arguments via accordions, and culminates in an interactive valuation chart. This structure was chosen to transform dense legal information into an actionable tool for negotiation, allowing the user (Pierre and his lawyers) to quickly grasp key points, explore legal foundations on demand, and understand the financial strategy at a glance, which is more effective for preparation than a simple document. -->
+    <!-- Visualization & Content Choices: 
+        - Case Facts: Simple cards with icons (HTML/CSS) for quick, digestible information. Goal: Inform.
+        - Legal Principles: A visual flowchart (HTML/CSS) to show the logic flow from creation to claim. Goal: Organize/Inform.
+        - Strengths: Interactive cards (HTML/CSS/JS). Clicking reveals the specific legal article from the CPI. Goal: Inform/Engage. Justification: Connects claims directly to their legal basis in an engaging way.
+        - Defense Arguments: Accordion layout (HTML/CSS/JS) to present potential employer arguments and their rebuttals. Goal: Organize. Justification: Hides complexity until the user needs it, keeping the UI clean.
+        - Valuation Strategy: Horizontal Bar Chart (Chart.js/Canvas). Goal: Compare/Inform. Justification: Visually compares the different monetary figures (agency cost, negotiation range) for immediate impact and clarity. It's the most effective way to represent the financial stakes.
+        - All elements are designed to be interactive and support the non-linear exploration of the case file.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #3D4451;
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #14B8A6;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #14B8A6;
+            transition: width 0.3s;
+        }
+        .nav-link.active::after, .nav-link:hover::after {
+            width: 100%;
+        }
+        .card-strength {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-strength:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="sticky top-0 bg-[#FDFBF8]/80 backdrop-blur-md z-50 shadow-sm">
+        <div class="container mx-auto px-4">
+            <nav class="flex justify-between items-center py-4">
+                <h1 class="text-xl md:text-2xl font-bold text-teal-600">Dossier PI · <span class="font-light">SAVO</span></h1>
+                <div class="hidden md:flex space-x-8 font-medium text-gray-600" id="nav-menu">
+                    <a href="#synthese" class="nav-link">Synthèse</a>
+                    <a href="#fondements" class="nav-link">Fondements</a>
+                    <a href="#strategie" class="nav-link">Stratégie</a>
+                    <a href="#valorisation" class="nav-link">Valorisation</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 md:py-16">
+        
+        <section id="synthese" class="mb-16 md:mb-24 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Analyse Stratégique de la Propriété Intellectuelle</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">Ce tableau de bord interactif détaille votre position et votre stratégie dans le litige de propriété intellectuelle concernant le logo ProRépar, afin de maximiser vos indemnités de départ.</p>
+            
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg mb-2">Les Acteurs</h3>
+                    <ul class="space-y-1 text-gray-700">
+                        <li><span class="font-semibold text-teal-600">Vous (Pierre) :</span> Créateur du logo</li>
+                        <li><span class="font-semibold">Groupe SAVO :</span> Employeur</li>
+                        <li><span class="font-semibold">ProRépar :</span> Plateforme/Marque</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg mb-2">La Création</h3>
+                    <p class="text-gray-700">Vous avez créé le logo ProRépar et ses évolutions sur 5 ans, à la demande du CEO, mais en totale autonomie créative.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg mb-2">Le Litige</h3>
+                    <p class="text-gray-700">SAVO a exploité le logo pendant 5 ans sans détenir les droits, votre contrat ne prévoyant aucune cession de propriété intellectuelle.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg mb-2">Vos Preuves</h3>
+                    <p class="text-gray-700">Mails du CEO, fichiers sources (.psd), moodboards, et historique des versions. Votre paternité est incontestable.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="fondements" class="mb-16 md:mb-24">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Vos Fondements Juridiques</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 text-center mb-12">Votre position repose sur des principes fondamentaux du droit d'auteur français. Ce sont vos points forts dans la négociation. Cliquez sur chaque carte pour voir le texte de loi correspondant.</p>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card-strength bg-white rounded-xl p-6 border border-gray-200 cursor-pointer" data-content="article-1">
+                    <h3 class="text-xl font-bold mb-3 text-teal-700">Vous êtes le propriétaire</h3>
+                    <p class="text-gray-600">Le simple fait de créer une œuvre originale (le logo) vous confère automatiquement le statut d'auteur et la propriété des droits.</p>
+                    <div id="article-1" class="accordion-content mt-4 pt-4 border-t border-gray-200">
+                         <p class="text-sm font-semibold text-gray-800">Code de la Propriété Intellectuelle, Art. L. 111-1</p>
+                         <p class="text-sm text-gray-600 italic mt-1">"L'auteur d'une œuvre de l'esprit jouit sur cette œuvre, du seul fait de sa création, d'un droit de propriété incorporelle exclusif et opposable à tous."</p>
+                    </div>
+                </div>
+
+                <div class="card-strength bg-white rounded-xl p-6 border border-gray-200 cursor-pointer" data-content="article-2">
+                    <h3 class="text-xl font-bold mb-3 text-teal-700">Absence de cession de droits</h3>
+                    <p class="text-gray-600">Votre contrat de travail est muet sur la cession de vos droits d'auteur. Par conséquent, vous ne les avez jamais cédés à SAVO.</p>
+                     <div id="article-2" class="accordion-content mt-4 pt-4 border-t border-gray-200">
+                         <p class="text-sm font-semibold text-gray-800">Code de la Propriété Intellectuelle, Art. L. 131-3</p>
+                         <p class="text-sm text-gray-600 italic mt-1">La transmission des droits de l'auteur est subordonnée à la condition que chacun des droits cédés fasse l'objet d'une mention distincte dans l'acte de cession et que le domaine d'exploitation des droits cédés soit délimité.</p>
+                    </div>
+                </div>
+
+                <div class="card-strength bg-white rounded-xl p-6 border border-gray-200 cursor-pointer" data-content="article-3">
+                    <h3 class="text-xl font-bold mb-3 text-teal-700">Exploitation illicite = Contrefaçon</h3>
+                    <p class="text-gray-600">L'utilisation du logo par SAVO pendant 5 ans sans votre autorisation constitue une contrefaçon, qui ouvre droit à réparation.</p>
+                     <div id="article-3" class="accordion-content mt-4 pt-4 border-t border-gray-200">
+                         <p class="text-sm font-semibold text-gray-800">Code de la Propriété Intellectuelle, Art. L. 335-2</p>
+                         <p class="text-sm text-gray-600 italic mt-1">"Toute édition d'écrits, de composition musicale, de dessin, de peinture ou de toute autre production, imprimée ou gravée en entier ou en partie, au mépris des lois et règlements relatifs à la propriété des auteurs, est une contrefaçon..."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="strategie" class="mb-16 md:mb-24">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Stratégie de Négociation</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 text-center mb-12">Votre stratégie s'articule en deux temps : anticiper la défense de SAVO et présenter une demande d'indemnisation claire et justifiée.</p>
+
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4">Anticiper la Défense de SAVO</h3>
+                    <div class="space-y-4">
+                        <div class="accordion-item bg-white border border-gray-200 rounded-xl">
+                            <button class="accordion-header w-full flex justify-between items-center text-left p-5 font-semibold">
+                                Argument 1 : "Création dans vos fonctions"
+                                <span class="accordion-icon transform transition-transform text-teal-500 text-2xl font-light">＋</span>
+                            </button>
+                            <div class="accordion-content px-5 pb-5">
+                                <p class="text-gray-700 font-semibold">Leur argument :</p>
+                                <p class="text-gray-600 mb-3">Ils diront que votre salaire couvrait déjà la création du logo, car cela faisait partie de vos missions.</p>
+                                <p class="text-gray-700 font-semibold text-teal-600">Votre contre-argument :</p>
+                                <p class="text-gray-600">La jurisprudence est constante : même dans l'exercice des fonctions, le salaire ne vaut pas cession des droits d'auteur. Une rémunération distincte et un acte de cession formel sont nécessaires.</p>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-white border border-gray-200 rounded-xl">
+                            <button class="accordion-header w-full flex justify-between items-center text-left p-5 font-semibold">
+                                Argument 2 : "L'œuvre collective"
+                                <span class="accordion-icon transform transition-transform text-teal-500 text-2xl font-light">＋</span>
+                            </button>
+                            <div class="accordion-content px-5 pb-5">
+                                <p class="text-gray-700 font-semibold">Leur argument :</p>
+                                <p class="text-gray-600 mb-3">Ils pourraient plaider que le logo est une "œuvre collective" dont SAVO, en tant qu'initiateur, est le propriétaire des droits.</p>
+                                <p class="text-gray-700 font-semibold text-teal-600">Votre contre-argument :</p>
+                                <p class="text-gray-600">Cet argument est très faible. Une œuvre collective implique la fusion de contributions non identifiables. Or, vous êtes l'unique créateur identifiable, ce que vos preuves confirment. Le logo est une œuvre de collaboration au mieux, mais dont vous restez le co-auteur principal, ou une oeuvre individuelle.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-bold mb-4">Votre Demande</h3>
+                     <div class="bg-teal-50 border-l-4 border-teal-500 text-teal-800 p-6 rounded-r-lg">
+                        <h4 class="font-bold text-lg mb-2">Une indemnité transactionnelle globale</h4>
+                        <p>Votre demande doit couvrir deux aspects en un seul montant forfaitaire :</p>
+                        <ol class="list-decimal list-inside mt-3 space-y-2">
+                            <li><span class="font-semibold">La Cession de vos droits :</span> Pour que SAVO puisse continuer à utiliser le logo légalement à l'avenir.</li>
+                            <li><span class="font-semibold">La Réparation pour le passé :</span> En dédommagement des 5 années d'utilisation illicite (contrefaçon).</li>
+                        </ol>
+                        <p class="mt-4 font-semibold">Cette approche est claire, professionnelle et facilite la négociation en présentant un "package" de règlement définitif.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="valorisation" class="bg-white py-16 md:py-20 rounded-2xl shadow-lg border border-gray-200">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">Valorisation et Objectifs Financiers</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 text-center mb-12">Le graphique ci-dessous illustre la valorisation de vos droits et la stratégie de négociation recommandée. L'objectif est de sécuriser une indemnité juste, reflétant la valeur de votre création et le préjudice subi.</p>
+
+            <div class="chart-container">
+                <canvas id="valuationChart"></canvas>
+            </div>
+            
+            <div class="mt-12 max-w-4xl mx-auto grid md:grid-cols-2 gap-8 text-center">
+                 <div class="bg-gray-50 p-6 rounded-xl">
+                    <h3 class="font-bold text-lg mb-2 text-teal-700">Le risque pour SAVO</h3>
+                    <p class="text-gray-600">Le coût d'un refus est leur plus grande faiblesse. Mettez en avant le risque financier et opérationnel pour eux : frais de justice, condamnation potentielle, et surtout, le coût astronomique d'un rebranding total et urgent de ProRépar s'ils sont forcés de cesser l'utilisation du logo.</p>
+                </div>
+                 <div class="bg-gray-50 p-6 rounded-xl">
+                    <h3 class="font-bold text-lg mb-2 text-teal-700">Votre position de force</h3>
+                    <p class="text-gray-600">Vous ne demandez pas une faveur, vous proposez une solution pour régulariser une situation illégale qui leur est très défavorable. Vous leur vendez une sécurité juridique qu'ils n'ont pas. Abordez la négociation avec confiance.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-8 mt-16 border-t border-gray-200">
+        <p class="text-gray-500">Dossier généré pour Pierre | Juin 2025</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const strengthCards = document.querySelectorAll('.card-strength');
+            strengthCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const contentId = card.dataset.content;
+                    const contentElement = document.getElementById(contentId);
+                    const isVisible = contentElement.style.maxHeight && contentElement.style.maxHeight !== '0px';
+
+                    strengthCards.forEach(c => {
+                        const otherContent = document.getElementById(c.dataset.content);
+                        if (otherContent !== contentElement) {
+                             otherContent.style.maxHeight = '0px';
+                        }
+                    });
+
+                    if (isVisible) {
+                        contentElement.style.maxHeight = '0px';
+                    } else {
+                        contentElement.style.maxHeight = contentElement.scrollHeight + 'px';
+                    }
+                });
+            });
+            
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                const content = item.querySelector('.accordion-content');
+                const icon = item.querySelector('.accordion-icon');
+
+                header.addEventListener('click', () => {
+                    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+                    if (isOpen) {
+                        content.style.maxHeight = '0px';
+                        icon.textContent = '＋';
+                        icon.classList.remove('rotate-45');
+
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        icon.textContent = '－';
+                        icon.classList.add('rotate-45');
+                    }
+                });
+            });
+            
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            const ctx = document.getElementById('valuationChart').getContext('2d');
+            const valuationChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'Demande Initiale Recommandée',
+                        'Objectif de Négociation Haut',
+                        'Estimation Coût Agence (votre plancher)',
+                    ],
+                    datasets: [{
+                        label: 'Valorisation (€)',
+                        data: [80000, 65000, 50000],
+                        backgroundColor: [
+                            'rgba(13, 148, 136, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(13, 148, 136)',
+                            'rgb(16, 185, 129)',
+                            'rgb(245, 158, 11)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return value.toLocaleString('fr-FR') + ' €';
+                                }
+                            }
+                        },
+                        y: {
+                           ticks: {
+                                autoSkip: false,
+                                callback: function(value, index, values) {
+                                    const label = this.getLabelForValue(value);
+                                    if (/\s/.test(label)) {
+                                        return label.split(" ");
+                                    }
+                                    return label;
+                                }
+                           }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.x);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
